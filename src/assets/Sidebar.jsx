@@ -1,5 +1,108 @@
 
 const Sidebar = () => {
+
+  function toRadians(degrees) {
+    return degrees * (Math.PI / 180);
+}
+
+function convertEpoch(epochStr) {
+    const dt = new Date(epochStr);
+    const jd = Math.floor(dt / 86400000) + 2440587.5;
+    return jd;
+}
+
+function getAsteroidPosition(name, a, e, i, omegaNode, omega, M, epoch, date = new Date()) {
+    i = toRadians(i);
+    omegaNode = toRadians(omegaNode);
+    omega = toRadians(omega);
+    M = toRadians(M);
+    const epochJD = convertEpoch(epoch);
+    
+    const jd = Math.floor(date / 86400000) + 2440587.5;
+    const deltaT = jd - epochJD;
+    const n = Math.sqrt(1 / Math.pow(a, 3));
+    let M_t = M + n * deltaT;
+    let E = M_t;
+
+    for (let j = 0; j < 10; j++) {
+        E = M_t + e * Math.sin(E);
+    }
+
+    const v = 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2));
+    const r = a * (1 - e * Math.cos(E));
+
+    const x = r * (Math.cos(omegaNode) * Math.cos(omega + v) - Math.sin(omegaNode) * Math.sin(omega + v) * Math.cos(i));
+    const y = r * (Math.sin(omegaNode) * Math.cos(omega + v) + Math.cos(omegaNode) * Math.sin(omega + v) * Math.cos(i));
+    const z = r * (Math.sin(i) * Math.sin(omega + v));
+
+    return { name, position: [x, y, z] };
+}
+
+const some = [
+    {
+      "name": "2023 GM1",
+      "a": 2.426,
+      "e": 0.543,
+      "i": 3.35,
+      "omegaNode": 22.41,
+      "omega": 216.13,
+      "M": 151.41,
+      "epoch": "2023-03-19T00:00:00Z",
+      "position": [0.9734852056203217, -0.7600433765642877, -0.06415751724776093]
+    },
+    {
+      "name": "2014 VA",
+      "a": 1.784,
+      "e": 0.329,
+      "i": 3.54,
+      "omegaNode": 295.31,
+      "omega": 222.51,
+      "M": 34.81,
+      "epoch": "2014-11-11T00:00:00Z",
+      "position": [-0.4135284040037209, -1.21142134742697, -0.06676740858962699]
+    },
+    {
+      "name": "2024 SY5",
+      "a": 2.534,
+      "e": 0.456,
+      "i": 10.23,
+      "omegaNode": 260.85,
+      "omega": 191.31,
+      "M": 118.91,
+      "epoch": "2024-09-18T00:00:00Z",
+      "position": [-2.065865133931518, 0.2800077783645488, 0.3890874556792513]
+    },
+    {
+      "name": "2024 SH3",
+      "a": 1.934,
+      "e": 0.394,
+      "i": 2.43,
+      "omegaNode": 14.58,
+      "omega": 202.29,
+      "M": 209.51,
+      "epoch": "2024-09-17T00:00:00Z",
+      "position": [-0.7457409932580072, -1.681940040196903, -0.070167065315978]
+    },
+    {
+      "name": "2024 SH1",
+      "a": 2.093,
+      "e": 0.274,
+      "i": 4.59,
+      "omegaNode": 322.24,
+      "omega": 186.85,
+      "M": 81.21,
+      "epoch": "2024-09-17T00:00:00Z",
+      "position": [-1.76417391180474, -0.4272839408565989, -0.141055449278792]
+    }
+  ]
+
+  const fun1 = () => {
+    document.querySelector(".someone").style.display = "block";
+  };
+  const fun2 = () => {
+    document.querySelector(".someone").style.display = "none";
+  };
+
   return (
     <div className="relative flex h-[50%] flex-col rounded-xl bg-black bg-clip-border p-4 text-white shadow-xl shadow-blue-gray-900/5">
       <div className="p-4 mb-2">
@@ -8,7 +111,7 @@ const Sidebar = () => {
         </h5>
       </div>
       <nav className="flex min-w-[200px] flex-col gap-1 p-2 font-sans text-base font-normal text-blue-gray-700">
-        <div
+        <div onClick={fun1}
           role="button"
           className="flex hover:text-lg hover:text-blue-400 items-center w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-blue-gray-50 hover:bg-opacity-80 hover:text-blue-gray-900 focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900"
         >
@@ -21,8 +124,54 @@ const Sidebar = () => {
                 <path d="M19.9559 2H18.2338C17.9628 2 17.8273 2 17.7012 2.01974C17.4003 2.06683 17.1242 2.19626 16.9126 2.38941C16.8239 2.47039 16.7487 2.56914 16.5984 2.76663C16.2751 3.19139 16.1134 3.40378 16.0517 3.60076C15.9024 4.07694 16.0828 4.58571 16.5138 4.90401C16.6921 5.03568 16.9627 5.13048 17.5038 5.32008L18.5185 5.67557C19.1652 5.90215 19.4886 6.01543 19.8119 5.99831C19.9487 5.99106 20.0837 5.96679 20.2128 5.92623C20.5177 5.83042 20.7639 5.61473 21.2564 5.18334L21.4013 5.05647C21.5737 4.90543 21.66 4.82991 21.7287 4.74608C21.8585 4.58767 21.9449 4.40513 21.9809 4.21269C22 4.11085 22 4.00405 22 3.79044C22 3.30232 22 3.05826 21.9242 2.86139C21.7799 2.48681 21.4442 2.19275 21.0166 2.06641C20.7918 2 20.5131 2 19.9559 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </div>
-          Near Earth Astroids
+          <div>
+          Near Earth Astroids          
+          </div>
         </div>
+          <div>
+          <div className="someone z-30 hidden w-[80] left-96 mb-10 absolute -top-36">
+                <div className="flex justify-center w-full h-[30%]">
+                  <div className="w-[38vw] text-white text-lg backdrop-filter backdrop-blur-sm bg-opacity-10 rounded-2xl bg-blue-300 font-semibold py-8 px-8 mt-10">
+                    <div className="text-2xl">NEAR EARTH ASTROIDS</div>
+                    <div className="flex justify-end">
+                      <div
+                        onClick={fun2}
+                        className="cross1 cursor-pointer absolute top-8"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          height="24"
+                          color="#ffffff"
+                          fill="none"
+                        >
+                          <path
+                            d="M10.2471 6.7402C11.0734 7.56657 11.4866 7.97975 12.0001 7.97975C12.5136 7.97975 12.9268 7.56658 13.7531 6.74022L13.7532 6.7402L15.5067 4.98669L15.5067 4.98668C15.9143 4.5791 16.1182 4.37524 16.3302 4.25283C17.3966 3.63716 18.2748 4.24821 19.0133 4.98669C19.7518 5.72518 20.3628 6.60345 19.7472 7.66981C19.6248 7.88183 19.421 8.08563 19.0134 8.49321L17.26 10.2466C16.4336 11.073 16.0202 11.4864 16.0202 11.9999C16.0202 12.5134 16.4334 12.9266 17.2598 13.7529L19.0133 15.5065C19.4209 15.9141 19.6248 16.1179 19.7472 16.3299C20.3628 17.3963 19.7518 18.2746 19.0133 19.013C18.2749 19.7516 17.3965 20.3626 16.3302 19.7469C16.1182 19.6246 15.9143 19.4208 15.5067 19.013L13.7534 17.2598L13.7533 17.2597C12.9272 16.4336 12.5136 16.02 12.0001 16.02C11.4867 16.02 11.073 16.4336 10.2469 17.2598L10.2469 17.2598L8.49353 19.013C8.0859 19.4208 7.88208 19.6246 7.67005 19.7469C6.60377 20.3626 5.72534 19.7516 4.98693 19.013C4.2484 18.2746 3.63744 17.3963 4.25307 16.3299C4.37549 16.1179 4.5793 15.9141 4.98693 15.5065L6.74044 13.7529C7.56681 12.9266 7.98 12.5134 7.98 11.9999C7.98 11.4864 7.5666 11.073 6.74022 10.2466L4.98685 8.49321C4.57928 8.08563 4.37548 7.88183 4.25307 7.66981C3.63741 6.60345 4.24845 5.72518 4.98693 4.98669C5.72542 4.24821 6.60369 3.63716 7.67005 4.25283C7.88207 4.37524 8.08593 4.5791 8.49352 4.98668L8.49353 4.98669L10.2471 6.7402Z"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    {some.map((item, i) =>(
+                      <div className="w-[100%] py-3" key={i}>
+                        {item.name} : 
+                        a = <span className="px-4">{item.a}</span>
+                        e = <span className="px-4 text-md">{item.e}</span>
+                        i = <span className="px-4 text-md">{item.i}</span>
+                        omegaNode = <span className="px-4">{item.omegaNode}</span>
+                        omega = <span className="px-4">{item.omega}</span>
+                        M = <span className="px-4">{item.M}</span>
+                        epoch = <span className="px-4">{item.epoch}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+          </div>
         <div
           role="button"
           className="flex items-center hover:text-lg hover:text-blue-400 w-full p-3 leading-tight transition-all rounded-lg outline-none text-start hover:bg-blue-gray-50 hover:bg-opacity-80 hover:text-blue-gray-900 focus:bg-blue-gray-50 focus:bg-opacity-80 focus:text-blue-gray-900 active:bg-blue-gray-50 active:bg-opacity-80 active:text-blue-gray-900"
@@ -46,7 +195,9 @@ const Sidebar = () => {
                 <path d="M11.9929 12C14.7526 12 16.9898 9.76142 16.9898 7C16.9898 4.23858 14.7526 2 11.9929 2M11.9929 12C9.23326 12 6.99609 9.76142 6.99609 7C6.99609 4.23858 9.23326 2 11.9929 2M11.9929 12C13.0969 12 13.9917 9.76142 13.9917 7C13.9917 4.23858 13.0969 2 11.9929 2M11.9929 12C10.889 12 9.99421 9.76142 9.99421 7C9.99421 4.23858 10.889 2 11.9929 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
+          <a target="_blank" href="https://science.nasa.gov/solar-system/planets/">
           Education Content
+          </a>
         </div>
         <div
           role="button"
